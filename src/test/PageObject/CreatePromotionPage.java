@@ -5,7 +5,6 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import test.Page.BasePage;
-import test.Page.DynamicPackageLocators;
 import test.UI.CreatePromotionLocators;
 
 import java.time.LocalDate;
