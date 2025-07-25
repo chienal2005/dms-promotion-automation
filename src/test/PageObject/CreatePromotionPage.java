@@ -31,7 +31,7 @@ public class CreatePromotionPage extends BasePage {
     }
 
     public void enterPromotionName() {
-        String name = "autodms000000" + new Random().nextInt(100000) + "bacthang_Tangkemcungloai";
+        String name = "autodms000000" + new Random().nextInt(100000) + "bacthangTangkemcungloai";
         sendKey(CreatePromotionLocators.INPUT_PROMOTION_NAME, name);
     }
 
