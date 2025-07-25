@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Promotion Management Suite">
+    <test name="Promotion Management Test">
+        <classes>
+            <class name="test.tests.CreatePromotion"/>
+        </classes>
+    </test>
+</suite>
