@@ -44,7 +44,8 @@ public class BasePage {
     public void clickToElement(By locator) {
         try {
             waitUntilVisibleAndStable(locator);
-            WebElement element = driver.findElement(locator);
+            WebDriverWait wait = new WebDriverWait(driver, 10);
+            WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
             scrollIntoView(element);
             try {
                 element.click();

@@ -4,10 +4,11 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import test.Page.BasePage;
+import test.Page.*;
 import test.UI.CreatePromotionLocators;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -25,14 +26,16 @@ public class CreatePromotionPage extends BasePage {
     }
 
     public void enterPromotionCode() {
-        String code = "AutoUI" + new Random().nextInt(100000);
+        String code = "AutoUI000" + new Random().nextInt(100000);
         sendKey(CreatePromotionLocators.INPUT_PROMOTION_CODE, code);
     }
 
-    public void enterPromotionName() {
-        String name = "autodms000000" + new Random().nextInt(100000) + "bacthangTangkemcungloai";
+    public void enterPromotionName(String actionTypeText) {
+        String timeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyyy_HHmmss"));
+        String name = "autodms90_" + actionTypeText + "_" + timeNow;
         sendKey(CreatePromotionLocators.INPUT_PROMOTION_NAME, name);
     }
+
 
     public void selectStartAndEndDate() {
         LocalDate today = LocalDate.now();
@@ -106,29 +109,206 @@ public class CreatePromotionPage extends BasePage {
         } catch (Exception ignored) {}
     }
 
+    public void createTieredPackages(List<PackageData> packageDataList) {
+        for (int i = 0; i < packageDataList.size(); i++) {
+            clickToElement(CreatePromotionLocators.BUTTON_ADD_PACKAGE);
+            PackageData data = packageDataList.get(i);
 
-    public void actionPackage(int packageNumber, String quantityCondition, String quantityGift) {
-        clickToElement(CreatePromotionLocators.BUTTON_ADD_PACKAGE);
-        switch (packageNumber) {
-            case 1:
-                fillPackage(CreatePromotionLocators.DROPDOWN_PACKAGE_CONDITION, CreatePromotionLocators.OPTION_CONTENT_2_PACKAGE_1, CreatePromotionLocators.CONDITION_VALUE_QUALITY_1, quantityCondition, CreatePromotionLocators.DROPDOWN_PACKAGE_ACTION_OPTION_0, CreatePromotionLocators.INPUT_PACKAGE_QUANTITY, quantityGift, CreatePromotionLocators.Action_value_kind_of_deduction, CreatePromotionLocators.Value_kind_of_deduction_1_P1);
-                break;
-            case 2:
-                fillPackage(CreatePromotionLocators.DROPDOWN_PACKAGE_CONDITION_2, CreatePromotionLocators.OPTION_CONTENT_2_PACKAGE_2, CreatePromotionLocators.CONDITION_VALUE_QUALITY_2, quantityCondition, null, CreatePromotionLocators.INPUT_PACKAGE_QUANTITY_2, quantityGift, CreatePromotionLocators.Action_value_kind_of_deduction_2, CreatePromotionLocators.Value_kind_of_deduction_1_P2);
-                break;
-            case 3:
-                fillPackage(CreatePromotionLocators.DROPDOWN_PACKAGE_CONDITION_3, CreatePromotionLocators.OPTION_CONTENT_2_PACKAGE_3, CreatePromotionLocators.CONDITION_VALUE_QUALITY_3, quantityCondition, null, CreatePromotionLocators.INPUT_PACKAGE_QUANTITY_3, quantityGift, CreatePromotionLocators.Action_value_kind_of_deduction_3, CreatePromotionLocators.Value_kind_of_deduction_2_P3);
-                break;
+            actionPackage(i,
+                    data.getOptionContent(),
+                    data.getQuantityCondition(),
+                    data.getQuantityGift(),
+                    data.getDeductionOptionText(),
+                    data.getActionType());  // ✅ đúng cú pháp đủ 6 tham số
+        }
+    }
+    public void createAllPackages(List<PackageData> packageDataList) {
+        for (int i = 0; i < packageDataList.size(); i++) {
+            PackageData data = packageDataList.get(i);
+
+            if (data.getActionType() == ActionType.DISCOUNT_PERCENT) {
+                createDiscountPackage(
+                        i,
+                        data.getOptionContent(),
+                        data.getQuantityCondition(),
+                        data.getDiscountPercent(),
+                        data.getMaxAmount(),
+                        data.getDiscountType(),
+                        data.getDeductionRule(),
+                        data.getMaxSlot()
+                );
+            }
         }
     }
 
-    private void fillPackage(By conditionDropdown, By conditionOption, By inputCondition, String conditionValue, By actionDropdown, By inputQuantity, String giftValue, By deductionDropdown, By deductionOption) {
+
+    public void createDiscountPackage(int packageIndex,
+                                      String optionContent,
+                                      String quantityCondition,
+                                      String discountPercent,
+                                      String maxAmount,
+                                      DiscountType discountType,
+                                      String deductionRule,
+                                      String maxSlot) {
+
+        // 1. Click "Thêm gói"
+        clickToElement(CreatePromotionLocators.BUTTON_ADD_PACKAGE);
+
+        // 2. Nhập điều kiện
+        handleCondition(packageIndex, optionContent, quantityCondition);
+
+        // 3. Chọn dropdown "Hình thức" (chỉ gói 0)
+        if (packageIndex == 0) {
+            clickDropdownOption(
+                    DynamicLocators.getDropdownPackageActionOption(packageIndex),
+                    DynamicLocators.getActionOptionByText("Chiết khấu")
+            );
+        }
+
+        // 4. Nhập % và giá trị tối đa
+        sendKey(DynamicLocators.getInputDiscountPercent(packageIndex), discountPercent);
+        sendKey(DynamicLocators.getInputDiscountMaxAmount(packageIndex), maxAmount);
+
+
+        // 6. Nếu là loại theo điều kiện → điền thêm quy tắc & số suất
+        if (discountType == DiscountType.PRODUCT_GROUP_BY_CONDITION) {
+            // 5. Chọn loại DiscountType
+            clickToElement(DynamicLocators.getDiscountTypeLabelByText("Chiết khấu % giá trị nhóm sản phẩm theo điều kiện"));
+            clickDropdownOption(
+                    DynamicLocators.getDropdownDeductionRule(packageIndex),
+                    DynamicLocators.getDeductionRuleOption(deductionRule, packageIndex)
+            );
+            sendKey(DynamicLocators.getInputSlotDesired(deductionRule, packageIndex), maxSlot);
+        }
+    }
+
+
+    public void actionPackage(int packageIndex,
+                              String optionContent,
+                              String quantityCondition,
+                              String quantityGift,
+                              String deductionOptionText,
+                              ActionType actionType) {
+
+        handleCondition(packageIndex, optionContent, quantityCondition);
+        handleActionMethod(packageIndex, quantityGift, deductionOptionText, actionType);
+    }
+
+
+    private void handleCondition(int packageIndex, String optionContent, String quantityCondition) {
+        By conditionDropdown = DynamicLocators.getDropdownPackageCondition(packageIndex);
+        By conditionOption = DynamicLocators.getConditionOption(optionContent, packageIndex);
+
         clickDropdownOption(conditionDropdown, conditionOption);
-        sendKey(inputCondition, conditionValue);
-        if (actionDropdown != null) clickDropdownOption(actionDropdown, CreatePromotionLocators.OPTION_PACKAGE_QUANTITY);
+
+        By inputCondition;
+        switch (optionContent.trim()) {
+            case "Số lượng mỗi loại sản phẩm":
+                inputCondition = DynamicLocators.getInputConditionQuantity(packageIndex);
+                break;
+            case "Tổng giá trị nhóm sản phẩm":
+                inputCondition = DynamicLocators.getInputConditionTotalAmount(packageIndex);
+                break;
+            case "Tổng giá trị đơn hàng":
+                inputCondition = DynamicLocators.getInputConditionTotalOrderAmount(packageIndex);
+                break;
+            default:
+                throw new IllegalArgumentException("Không hỗ trợ loại điều kiện: " + optionContent);
+        }
+
+        sendKey(inputCondition, quantityCondition);
+    }
+
+    private void handleActionMethod(int packageIndex, String giftValue, String deductionOptionText, ActionType actionType) {
+        if (packageIndex == 0) {
+            By actionDropdown = DynamicLocators.getDropdownPackageActionOption(packageIndex);
+            By actionOption = DynamicLocators.getActionOptionByText(actionType.getLabel());
+            clickDropdownOption(actionDropdown, actionOption);
+        }
+
+        By inputQuantity = DynamicLocators.getInputActionQuantity(packageIndex);
+        By deductionDropdown = DynamicLocators.getDropdownDeductionRule(packageIndex);
+        By deductionOption = DynamicLocators.getDeductionRuleOption(deductionOptionText, packageIndex);
+
         sendKey(inputQuantity, giftValue);
         clickDropdownOption(deductionDropdown, deductionOption);
     }
+
+    //chiết khấu
+    public void selectDiscountForFirstPackage(int packageIndex, String discountPercent, String disscountMaxAmount, DiscountType discountType, String deductionRule, String maxSlot) {
+        if (packageIndex != 0) return;
+
+        // 1. Chọn dropdown hành động "Chiết khấu"
+        clickDropdownOption(
+                DynamicLocators.getDropdownPackageActionOption(packageIndex),
+                DynamicLocators.getActionOptionByText("Chiết khấu")
+        );
+
+        // 2. Nhập mức chiết khấu (%)
+        By inputChietKhau = DynamicLocators.getInputDiscountPercent(packageIndex);
+        By inputDiscountMaxAmount = DynamicLocators.getInputDiscountMaxAmount(packageIndex);
+
+        sendKey(inputChietKhau, discountPercent);
+        sendKey(inputDiscountMaxAmount, disscountMaxAmount);
+
+        // 4. Chọn radio button loại chiết khấu
+        clickToElement(DynamicLocators.getDiscountTypeLabelByText(discountType.getLabelText()));
+
+        // 5. Nếu là loại "theo điều kiện" thì xử lý thêm
+        if (discountType == DiscountType.PRODUCT_GROUP_BY_CONDITION) {
+            clickDropdownOption(
+                    DynamicLocators.getDropdownDeductionRule(packageIndex),
+                    DynamicLocators.getDeductionRuleOption(deductionRule, packageIndex)
+            );
+            sendKey(DynamicLocators.getInputSlotDesired(deductionRule, packageIndex), maxSlot);
+        }
+    }
+
+    private void handleDiscountMethod(int packageIndex, PackageData data, Object discountPercent, Object disscountMaxAmount, ActionType actionType) {
+        if (packageIndex == 0) {
+            By actionDropdown = DynamicLocators.getDropdownPackageActionOption(packageIndex);
+            By actionOption = DynamicLocators.getActionOptionByText(actionType.getLabel());
+            clickDropdownOption(actionDropdown, actionOption);
+        }
+        By inputChietKhau = DynamicLocators.getInputDiscountPercent(packageIndex);
+        By inputDiscountMaxAmount = DynamicLocators.getInputDiscountMaxAmount(packageIndex);
+
+        sendKey(inputChietKhau, discountPercent);
+        sendKey(inputDiscountMaxAmount, disscountMaxAmount);
+
+    }
+
+
+
+//    public void actionPackage(int packageNumber, String quantityCondition, String quantityGift) {
+//        clickToElement(CreatePromotionLocators.BUTTON_ADD_PACKAGE);
+//        switch (packageNumber) {
+//            case 1:
+//                fillPackage(CreatePromotionLocators.DROPDOWN_PACKAGE_CONDITION, CreatePromotionLocators.OPTION_CONTENT_2_PACKAGE_1, CreatePromotionLocators.INPUT_CONDITION_VALUE_QUALITY_1, quantityCondition, CreatePromotionLocators.DROPDOWN_PACKAGE_ACTION_OPTION_0, CreatePromotionLocators.INPUT_PACKAGE_QUANTITY, quantityGift, CreatePromotionLocators.Action_value_kind_of_deduction, CreatePromotionLocators.Value_kind_of_deduction_1_P1);
+//                break;
+//            case 2:
+//                fillPackage(CreatePromotionLocators.DROPDOWN_PACKAGE_CONDITION_2, CreatePromotionLocators.OPTION_CONTENT_2_PACKAGE_2, CreatePromotionLocators.CONDITION_VALUE_QUALITY_2, quantityCondition, null, CreatePromotionLocators.INPUT_PACKAGE_QUANTITY_2, quantityGift, CreatePromotionLocators.Action_value_kind_of_deduction_2, CreatePromotionLocators.Value_kind_of_deduction_1_P2);
+//                break;
+//            case 3:
+//                fillPackage(CreatePromotionLocators.DROPDOWN_PACKAGE_CONDITION_3, CreatePromotionLocators.OPTION_CONTENT_2_PACKAGE_3, CreatePromotionLocators.CONDITION_VALUE_QUALITY_3, quantityCondition, null, CreatePromotionLocators.INPUT_PACKAGE_QUANTITY_3, quantityGift, CreatePromotionLocators.Action_value_kind_of_deduction_3, CreatePromotionLocators.Value_kind_of_deduction_2_P3);
+//                break;
+//        }
+//    }
+
+    private void fillPackage(By conditionDropdown, By conditionOption, By inputCondition, String conditionValue,
+                             By actionDropdown, By inputQuantity, String giftValue,
+                             By deductionDropdown, By deductionOption) {
+        clickDropdownOption(conditionDropdown, conditionOption);
+        sendKey(inputCondition, conditionValue);
+
+        if (actionDropdown != null) {
+            clickDropdownOption(actionDropdown, CreatePromotionLocators.ACTION_GIFT_SAME);
+        }
+
+        sendKey(inputQuantity, giftValue);
+        clickDropdownOption(deductionDropdown, deductionOption);
+    }
+
 
     public void fillBudgetProductByStep() {
         driver.findElements(CreatePromotionLocators.ICON_SYNC_PRODUCT_BUDGET).stream().filter(WebElement::isDisplayed).findFirst().ifPresent(btn -> {
@@ -159,12 +339,11 @@ public class CreatePromotionPage extends BasePage {
         return 0;
     }
 
-    public void TotalBudget(Object value) {
+    public void TotalBudget(String budgetType, Object value)  {
         clickToElement(CreatePromotionLocators.TAB_BUDGET);
-        clickToElement(CreatePromotionLocators.RADIO_BUDGET_SLOT);
+        clickToElement(CreatePromotionLocators.getRadioBudgetType(budgetType));
         clickToElement(CreatePromotionLocators.CHECKBOX_TOTAL_BUDGET);
         sendKey(CreatePromotionLocators.INPUT_TOTAL_BUDGET, value);
-        clickToElement(CreatePromotionLocators.CHECKBOX_LIMIT_PRODUCT);
     }
     public void AreaBudget(Object value1, Object value2) {
         clickToElement(CreatePromotionLocators.CHECKBOX_AREA_BUDGET);
@@ -208,6 +387,7 @@ public class CreatePromotionPage extends BasePage {
 
     public void savePromotion() {
         clickToElement(CreatePromotionLocators.BUTTON_SAVE);
-        clickToElement(CreatePromotionLocators.BUTTON_ACCEPT);
+        WebElement confirmBtn = driver.findElement(CreatePromotionLocators.BUTTON_ACCEPT);
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", confirmBtn);
     }
 }

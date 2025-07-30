@@ -61,23 +61,69 @@ public class CreatePromotionLocators {
     public static final By OPTION_CONTENT_3 = By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='Tổng giá trị nhóm sản phẩm']");
     public static final By OPTION_CONTENT_4 = By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='Tổng giá trị đơn hàng']");
 
+        //gói 1
+        public static final By DROPDOWN_PACKAGE_CONDITION = By.xpath("//input[@id='packages_0_condition_option']/ancestor::div[contains(@class,'ant-select')]//div[contains(@class,'ant-select-selector')]");
+    //Số lượng mỗi loại SP
+    public static final By OPTION_CONTENT_2_PACKAGE_1 = By.xpath("//div[@class='ant-select-item-option-content' and text()='Số lượng mỗi loại sản phẩm']");
+    public static final By INPUT_CONDITION_VALUE_QUALITY_1 = By.xpath("//label[normalize-space()='Số lượng']/ancestor::div[contains(@class,'ant-form-item')]//input[@id='packages_0_condition_value_quantity']");
+    public static final By INPUT_value_slot_desired = By.xpath("//input[@id='packages_0_action_value_slot_desired']");
+
+    //Tổng giá trị nhóm SP
+    public static final By CONDITION_VALUE_TOTAL_AMOUNT = By.xpath("//div[@class='ant-select-item-option-content' and text()='Số lượng mỗi loại sản phẩm']");
+
+    public static final By DROPDOWN_PACKAGE_ACTION_OPTION_0 = By.xpath("//input[@id='packages_0_action_option']/ancestor::div[contains(@class,'ant-select-selector')]");
     public static final By ACTION_DISCOUNT = By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='Chiết khấu']");
     public static final By ACTION_REDUCE = By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='Giảm tiền']");
     public static final By ACTION_GIFT_SAME = By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='Tặng kèm sản phẩm cùng loại']");
     public static final By ACTION_GIFT_LIST = By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='Tặng kèm sản phẩm theo danh sách']");
 
-        //gói 1
-        public static final By DROPDOWN_PACKAGE_CONDITION = By.xpath("//input[@id='packages_0_condition_option']/ancestor::div[contains(@class,'ant-select-selector')]");
-    public static final By OPTION_CONTENT_2_PACKAGE_1 = By.xpath("//div[@class='ant-select-item-option-content' and text()='Tổng số lượng nhóm sản phẩm']");
-    public static final By CONDITION_VALUE_QUALITY_1 = By.xpath("(//input[@placeholder='Nhập vào số lượng'])[1]");
-    public static final By DROPDOWN_PACKAGE_ACTION_OPTION_0 = By.xpath("//input[@id='packages_0_action_option']/ancestor::div[contains(@class,'ant-select-selector')]");
-
-    public static final By OPTION_PACKAGE_QUANTITY = By.xpath("//div[@class='ant-select-item-option-content' and text()='Tặng kèm sản phẩm cùng loại']");
-    public static final By INPUT_PACKAGE_QUANTITY = By.xpath("(//input[@placeholder='Nhập vào số lượng'])[2]");
+    public static final By INPUT_PACKAGE_QUANTITY = By.xpath("//label[normalize-space()='Số lượng']/following::input[@id='packages_0_action_value_quantity']");
     public static final By Action_value_kind_of_deduction = By.xpath("//input[@id='packages_0_action_value_kind_of_deduction']/ancestor::div[contains(@class,'ant-select-selector')]");
     public static final By Value_kind_of_deduction_1_P1 = By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='Giảm trừ theo suất thực nhận']");
     public static final By Value_kind_of_deduction_2_P1 = By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='Giảm trừ toàn bộ sản phẩm']");
-//gói 2
+
+    //🔹 Dropdown “Điều kiện” trong mỗi gói:
+    public static By getDropdownPackageCondition(int packageIndex) {
+        return By.xpath("//input[@id='packages_" + packageIndex + "_condition_option']/ancestor::div[contains(@class,'ant-select')]//div[contains(@class,'ant-select-selector')]");
+    }
+    //🔹 Option trong dropdown Điều kiện:
+    public static By getConditionOption(String visibleText) {
+        return By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='" + visibleText + "']");
+    }
+    //🔹 Input: Số lượng Điều kiện (condition_value_quantity)
+    public static By getInputConditionQuantity(int packageIndex) {
+        return By.xpath("//input[@id='packages_" + packageIndex + "_condition_value_quantity']");
+    }
+    //🔹 Input: Tổng giá trị nhóm sản phẩm (condition_value_total_amount)
+    public static By getInputConditionTotalAmount(int packageIndex) {
+        return By.xpath("//input[@id='packages_" + packageIndex + "_condition_value_total_amount']");
+    }
+    //🔹 Dropdown Hình thức (Action Option)
+    public static By getDropdownPackageActionOption(int packageIndex) {
+        return By.xpath("//input[@id='packages_" + packageIndex + "_action_option']/ancestor::div[contains(@class,'ant-select-selector')]");
+    }
+    //🔹 Các loại hành động (Hình thức)
+    public static By getActionOption(String visibleText) {
+        return By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='" + visibleText + "']");
+    }
+    //🔹 Input: Số lượng gói trong hành động (Action Quantity)
+    public static By getInputActionQuantity(int packageIndex) {
+        return By.xpath("//input[@id='packages_" + packageIndex + "_action_value_quantity']");
+    }
+    //Input: Số suất tối đa/Đơn
+    public static By getInputActionSlotLimit(int packageIndex) {
+        return By.xpath("//input[@id='packages_" + packageIndex + "_action_value_slot_desired']");
+    }
+    //Dropdown: Quy tắc giảm trừ
+    public static By getDropdownDeductionRule(int packageIndex) {
+        return By.xpath("//input[@id='packages_" + packageIndex + "_action_value_kind_of_deduction']/ancestor::div[contains(@class,'ant-select-selector')]");
+    }
+    //🔹 Option: Quy tắc giảm trừ cụ thể
+    public static By getDeductionRuleOption(String visibleText) {
+        return By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='" + visibleText + "']");
+    }
+
+    //gói 2
     public static final By DROPDOWN_PACKAGE_CONDITION_2 = By.xpath("//input[@id='packages_1_condition_option']/ancestor::div[contains(@class,'ant-select-selector')]");
     public static final By OPTION_CONTENT_2_PACKAGE_2 = By.xpath("(//div[@class='ant-select-item-option-content' and text()='Tổng số lượng nhóm sản phẩm'])[2]");
     public static final By CONDITION_VALUE_QUALITY_2 = By.xpath("(//input[@placeholder='Nhập vào số lượng'])[3]");
@@ -99,8 +145,10 @@ public class CreatePromotionLocators {
 
     public static final By TAB_BUDGET = By.xpath("//div[@role='tab' and .//span[text()='Ngân sách']]");
 
-        public static final By RADIO_BUDGET_SLOT = By.xpath("//input[@name='budget_config_budget_type' and @value='SLOT']/parent::span");
-        public static final By CHECKBOX_TOTAL_BUDGET = By.xpath("//input[@id='budget_config_use_budget_1']/parent::span");
+    public static By getRadioBudgetType(String value) {
+        return By.xpath("//input[@name='budget_config_budget_type' and @value='" + value + "']/parent::span");
+    }
+    public static final By CHECKBOX_TOTAL_BUDGET = By.xpath("//input[@id='budget_config_use_budget_1']/parent::span");
         public static final By INPUT_TOTAL_BUDGET = By.xpath("//input[@id='budget_config_total_budget_current_value_total_budget']");
 // ngn sach kv
     public static final By CHECKBOX_AREA_BUDGET = By.xpath("//input[@id='budget_config_use_budget_2']/parent::span");
@@ -133,5 +181,5 @@ public class CreatePromotionLocators {
         public static final By INPUT_PRODUCT_BUDGET = By.xpath("//td[contains(@class,'ant-table-cell')]//input[@placeholder='nhập dữ liệu' and not(@disabled)]");
 
         public static final By BUTTON_SAVE = By.xpath("//span[text()='Lưu']/ancestor::button");
-        public static final By BUTTON_ACCEPT = By.xpath("//span[text()='Đồng ý']/ancestor::button");
+    public static final By BUTTON_ACCEPT = By.xpath("//span[text()='Đồng ý']/ancestor::button");
 }
